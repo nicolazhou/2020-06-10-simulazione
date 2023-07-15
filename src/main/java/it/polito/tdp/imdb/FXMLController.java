@@ -5,9 +5,12 @@
 package it.polito.tdp.imdb;
 
 import java.net.URL;
+import java.util.List;
 import java.util.ResourceBundle;
 
+import it.polito.tdp.imdb.model.Actor;
 import it.polito.tdp.imdb.model.Model;
+import it.polito.tdp.imdb.model.SimulationResult;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -35,10 +38,10 @@ public class FXMLController {
     private Button btnSimulazione; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxGenere"
-    private ComboBox<?> boxGenere; // Value injected by FXMLLoader
+    private ComboBox<String> boxGenere; // Value injected by FXMLLoader
 
     @FXML // fx:id="boxAttore"
-    private ComboBox<?> boxAttore; // Value injected by FXMLLoader
+    private ComboBox<Actor> boxAttore; // Value injected by FXMLLoader
 
     @FXML // fx:id="txtGiorni"
     private TextField txtGiorni; // Value injected by FXMLLoader
@@ -49,15 +52,90 @@ public class FXMLController {
     @FXML
     void doAttoriSimili(ActionEvent event) {
 
+    	this.txtResult.clear();
+
+        
+    	if(!this.model.isGrafoLoaded()) {
+    		
+    		this.txtResult.setText("Crea grafo prima!");
+    		return;
+    		
+    	}
+    	
+    	Actor actor = this.boxAttore.getValue();
+    	
+    	if(actor == null) {
+    		
+    		this.txtResult.setText("Scegli un attore prima!");
+    		return;
+    	}
+    	
+    	List<Actor> simili = this.model.getSimili(actor);
+    	
+    	this.txtResult.appendText("ATTORI SIMILI A: " + actor + "\n");
+    	
+    	for(Actor a : simili) {
+    		
+    		this.txtResult.appendText(a + "\n");
+    		
+    	}
+    	
+    	
+    	
     }
 
     @FXML
     void doCreaGrafo(ActionEvent event) {
 
+    	this.txtResult.clear();
+        
+    	String genere = this.boxGenere.getValue();
+    	
+    	if(genere == null) {
+    		this.txtResult.setText("Scegli un genere!");
+    		return;
+    		
+    	}
+    	
+    	
+    	this.model.creaGrafo(genere);
+    	
+    	
+    	// VERSIONE A CAPO
+    	this.txtResult.appendText("Grafo creato! \n");
+    	this.txtResult.appendText("# Vertici: " + this.model.getNNodes() + "\n");
+    	this.txtResult.appendText("# Archi: " + this.model.getNArchi() + "\n");
+        
+    	
+    	this.boxAttore.getItems().clear();
+    	this.boxAttore.getItems().addAll(this.model.getActors());
+    	
+    	
     }
 
     @FXML
     void doSimulazione(ActionEvent event) {
+    	
+    	this.txtResult.clear();
+    	
+    	String input = this.txtGiorni.getText();
+    	
+    	int giorni = 0;
+    	
+    	try {
+    		
+    		giorni = Integer.parseInt(input);
+    	
+    	} catch(NumberFormatException e ) {
+    		
+    		this.txtResult.setText("Inserisci un valore numerico al numero di giorni!");
+    		return;
+    		
+    	}
+    	
+    	SimulationResult sim = this.model.simula(giorni);
+    	
+    	this.txtResult.appendText(sim.toString() + "\n");
 
     }
 
@@ -75,5 +153,7 @@ public class FXMLController {
     
     public void setModel(Model model) {
     	this.model = model;
+    	
+    	this.boxGenere.getItems().addAll(this.model.getGeneri());
     }
 }
